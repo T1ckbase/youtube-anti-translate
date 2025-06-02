@@ -1,0 +1,6 @@
+/* "css": ["style.css"], */
+
+h1 > yt-formatted-string {
+    visibility: hidden !important;
+    display: none !important;
+}
