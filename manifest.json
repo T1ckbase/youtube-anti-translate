@@ -1,17 +1,13 @@
 {
-    "manifest_version": 3,
-    "name": "YouTube Anti Translate",
-    "description": "YouTube Anti Translate",
-    "version": "1.0",
-    "permissions": [
-        "webRequest"
-    ],
-    "content_scripts": [
-        {
-
-            "js": ["content.js"],
-            "matches": ["*://*.youtube.com/*"],
-            "run_at": "document_end"
-        }
-    ]
+  "manifest_version": 3,
+  "name": "YouTube Anti Translate",
+  "description": "YouTube Anti Translate",
+  "version": "2.0",
+  "content_scripts": [
+    {
+      "js": ["content.js"],
+      "matches": ["*://www.youtube.com/*"],
+      "run_at": "document_end"
+    }
+  ]
 }

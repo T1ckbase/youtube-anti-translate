@@ -1,157 +1,122 @@
-// "icons": {
-//     "16": "images/kekwait.png",
-//     "32": "images/kekwait.png",
-//     "48": "images/kekwait.png",
-//     "128": "images/kekwait.png"
-// },
+// @ts-check
 
-// "web_accessible_resources": [
-//     {
-//         "resources": ["scripts/gmail-chat-dark-theme.js", "scripts/zz.js", "scripts/facebook.js", "scripts/youtube-enhanced-bitrate.js", "scripts/tradingview.js"],
-//         "matches": ["<all_urls>"]
-//     }
-// ]
+(() => {
+  /**
+   * Represents an Oembed object, containing information about embedded content.
+   * @typedef {object} Oembed
+   * @property {string} title - The title of the embedded content.
+   * @property {string} author_name - The name of the author or creator of the content.
+   * @property {string} author_url - The URL of the author or creator.
+   * @property {string} type - The type of the embedded content (e.g., "video", "photo", "rich").
+   * @property {number} height - The height of the embedded content in pixels.
+   * @property {number} width - The width of the embedded content in pixels.
+   * @property {string} version - The Oembed version.
+   * @property {string} provider_name - The name of the content provider.
+   * @property {string} provider_url - The URL of the content provider.
+   * @property {number} thumbnail_height - The height of the content's thumbnail in pixels.
+   * @property {number} thumbnail_width - The width of the content's thumbnail in pixels.
+   * @property {string} thumbnail_url - The URL of the content's thumbnail image.
+   * @property {string} html - The HTML code to embed the content.
+   */
 
-(function() {
-    const current_title_selector = 'h1 > yt-formatted-string.style-scope.ytd-watch-metadata'
-    const thumbnail_selectors = [
-        'ytd-rich-item-renderer',           // home page
-        'ytd-video-renderer',               // search page
-        'ytd-compact-video-renderer',       // watch page
-        'ytd-grid-video-renderer',          // channel home page
-        'ytd-playlist-video-renderer',      // ?
-        'ytd-playlist-panel-video-renderer' // playlist
-    ];
+  /**
+   * @param {string} url
+   * @returns {Promise<Oembed>}
+   */
+  async function getOembed(url) {
+    const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}`);
+    if (!res.ok) throw new Error(`Failed to fetch Oembed data for URL: "${url}". ${res.status} ${res.statusText}`);
+    return await res.json();
+  }
 
-    const oembed = 'https://www.youtube.com/oembed?url=';
-
-    let last_title = '';
-
-    function wait_for_element(e, selector) {
-        return new Promise(resolve => {
-            if (e.querySelector(selector)) {
-                return resolve(e.querySelector(selector));
-            }
-            const observer = new MutationObserver(mutations => {
-                if (e.querySelector(selector)) {
-                    observer.disconnect();
-                    resolve(e.querySelector(selector));
-                }
-            });
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        });
-    }
-
-    function untranslate_video(element) {
-        console.log(`[YoutubeAntiTranslate] Current URL: ${document.location.href}`);
-        const url = oembed + encodeURIComponent(document.location.href);
-        fetch(url)
-            .then(response => response.json())
-            .then(async data => {
-                const element = await wait_for_element(document, current_title_selector);
-                
-                let new_element = document.querySelector('h1 > span#new-title');
-                // if (new_element && element.textContent == new_element.textContent)
-                //     return;
-        
-                if (!new_element) {
-                    new_element = document.createElement('span');
-                    new_element.className = 'style-scope ytd-watch-metadata';
-                    new_element.id = 'new-title';
-                    element.after(new_element);
-                    // console.log('[YoutubeAntiTranslate] created new-title element');
-                }
-
-                // if (element.textContent == data.title)
-                    // return;
-                
-                const old_title = element.textContent;
-                // element.style.visibility = 'hidden';
-                // element.style.display = 'none';
-                // element.textContent = data.title;
-                // element.removeAttribute('is-empty');
-                // element.style.display = 'block';
-                
-                new_element.textContent = data.title;
-                // last_title = data.title;
-                // new_element.classList.add('anti-translate-processed');
-
-                const style = document.createElement('style');
-                style.id = 'YoutubeAntiTranslate-style';
-                style.innerHTML = 'h1 > yt-formatted-string {visibility: hidden !important; display: none !important;}';
-                document.documentElement.append(style);
-
-                document.title = data.title + ' - YouTube';
-
-                console.log(`[YoutubeAntiTranslate] "${old_title}" -> "${data.title}"`);
-            })
-            .catch(error => {
-                console.log(`[YoutubeAntiTranslate] ${error}`);
-                document.querySelectorAll('#YoutubeAntiTranslate-style').forEach(e => e.remove());
-            });
-    }
-
-    function untranslate_thumbnail(element) {
-        // element.classList.add('anti-translate-processed');
-        let a = element.querySelector('a#thumbnail')
-        if (!a)
-            return;
-
-        const title = element.querySelector('#video-title');
-        if (title.untranslated_href == a.href)
-            return;
-
-        title.untranslated_href = a.href;
-        const url = oembed + encodeURIComponent(a.href);
-        fetch(url)
-            .then(response => {
-                let j = response.json();
-                // console.log(j);
-                return j;
-            })
-            .then(data => {
-                if (title.innerText == data.title)
-                    return;
-                
-                const old_title = title.innerText;
-                title.innerText = data.title;
-                title.title = data.title;
-
-                console.log('[YoutubeAntiTranslate]', `"${old_title}" -> "${data.title}"`);
-            })
-            .catch(error => {
-                console.log('[YoutubeAntiTranslate]', error, a.href);
-            });
-    }
-
-    // current video
-    window.navigation.addEventListener('navigate', async function() {
-        await new Promise(r => setTimeout(r, 1));
-        untranslate_video();
+  /**
+   * @param {() => Element | undefined} fn
+   * @returns {Promise<Element>}
+   */
+  function waitForElement(fn) {
+    return new Promise((resolve, reject) => {
+      const element = fn();
+      if (element) resolve(element);
+      const observer = new MutationObserver(() => {
+        const element = fn();
+        if (element) {
+          observer.disconnect();
+          resolve(element);
+        }
+      });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
     });
-    // window.addEventListener('popstate', untranslate_video);
-    untranslate_video();
-    
-    // thumbnail
-    function callback(mutationList, observer) {
-        // e = document.querySelector(current_title_selector);
-        // if (e)
-            // untranslate_video(e);
+  }
 
-        thumbnail_selectors.forEach(selector => {
-            selector = selector.concat(':has(a)');
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(element => {
-                untranslate_thumbnail(element);
-            });
-        });
+  const currentTitleSelector = 'h1 > yt-formatted-string.style-scope.ytd-watch-metadata';
+  const thumbnailSelectors = [
+    'ytd-rich-item-renderer', // home page
+    'ytd-video-renderer', // search page
+    'ytd-compact-video-renderer', // watch page
+    'ytd-grid-video-renderer', // channel home page
+    'ytd-playlist-video-renderer', // watch later
+    'ytd-playlist-panel-video-renderer', // playlist
+  ];
+  const thumbnailSelector = thumbnailSelectors.map((selector) => `${selector}:not(:has(ytd-ad-slot-renderer)):not([data-untranslated])`).join(',');
+
+  /**
+   * @param {Element} element
+   */
+  async function untranslateThumbnail(element) {
+    element.setAttribute('data-untranslated', 'true');
+    /** @type {HTMLAnchorElement | null} */
+    const a = element.querySelector('a#thumbnail');
+    if (!a) return;
+    /** @type {HTMLSpanElement | null} */
+    const title = element.querySelector('#video-title');
+    if (!title) return;
+    try {
+      const oembed = await getOembed(a.href);
+      if (title.innerText.trim() === oembed.title.trim()) return;
+      console.log('[YoutubeAntiTranslate]', `"${title.innerText}" -> "${oembed.title}"`, a.href, element);
+      title.innerText = oembed.title;
+    } catch (err) {
+      console.log(err, a.href);
     }
+  }
 
-    const config = { attributes: false, childList: true, subtree: true };
-    const observer = new MutationObserver(callback);
-    observer.observe(document.querySelector('ytd-page-manager') || document.body, config);
+  async function untranslateVideo() {
+    try {
+      console.log(`[YoutubeAntiTranslate] Current URL: ${document.location.href}`);
+      const oembed = await getOembed(document.location.href);
+      const element = await waitForElement(() => document.querySelector(currentTitleSelector));
+      /** @type {HTMLSpanElement | null} */
+      let newElement = document.querySelector('h1 > span#new-title');
+      if (!newElement) {
+        newElement = document.createElement('span');
+        newElement.className = 'style-scope ytd-watch-metadata';
+        newElement.id = 'new-title';
+        element.insertAdjacentElement('afterend', newElement);
+      }
+      console.log(`[YoutubeAntiTranslate] "${newElement.innerText}" -> "${oembed.title}"`);
+      newElement.innerText = oembed.title;
+      if (document.title !== oembed.title + ' - YouTube') {
+        document.title = oembed.title + ' - YouTube';
+      }
+
+      const style = document.createElement('style');
+      style.id = 'youtube-anti-translate-style';
+      style.innerHTML = 'h1 > yt-formatted-string {visibility: hidden !important; display: none !important;}';
+      document.documentElement.append(style);
+    } catch (err) {
+      console.log(`[YoutubeAntiTranslate] ${err}`);
+      document.querySelectorAll('#youtube-anti-translate-style').forEach((e) => e.remove());
+    }
+  }
+
+  window.navigation.addEventListener('navigate', () => setTimeout(untranslateVideo, 1));
+  const observer1 = new MutationObserver(untranslateVideo);
+  observer1.observe(document.querySelector('title'), { attributes: false, childList: true, subtree: true });
+  untranslateVideo();
+
+  const observer2 = new MutationObserver(() => document.querySelectorAll(thumbnailSelector).forEach(untranslateThumbnail));
+  observer2.observe(document.body, { attributes: false, childList: true, subtree: true });
 })();
-
