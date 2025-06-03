@@ -51,6 +51,10 @@
     });
   }
 
+  function isHomePage() {
+    return window.location.pathname === '/';
+  }
+
   const currentTitleSelector = 'h1 > yt-formatted-string.style-scope.ytd-watch-metadata';
   const thumbnailSelectors = [
     'ytd-rich-item-renderer', // home page
@@ -84,6 +88,7 @@
   }
 
   async function untranslateVideo() {
+    if (isHomePage()) return;
     try {
       console.log(`[YoutubeAntiTranslate] Current URL: ${document.location.href}`);
       const oembed = await getOembed(document.location.href);
