@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "YouTube Anti Translate",
-  "description": "YouTube Anti Translate",
   "version": "2.0",
+  "description": "YouTube Anti Translate",
   "content_scripts": [
     {
-      "js": ["content.js"],
       "matches": ["*://www.youtube.com/*"],
+      "js": ["content.js"],
       "run_at": "document_end"
     }
   ]

@@ -64,7 +64,9 @@
     'ytd-playlist-video-renderer', // watch later
     'ytd-playlist-panel-video-renderer', // playlist
   ];
-  const thumbnailSelector = thumbnailSelectors.map((selector) => `${selector}:not(:has(ytd-ad-slot-renderer)):not([data-untranslated])`).join(',');
+  const thumbnailSelector = thumbnailSelectors.map((selector) =>
+    `${selector}:not(:has(ytd-ad-slot-renderer)):not([data-untranslated])`
+  ).join(',');
 
   /**
    * @param {Element} element
@@ -118,10 +120,12 @@
   }
 
   window.navigation.addEventListener('navigate', () => setTimeout(untranslateVideo, 1));
-  const observer1 = new MutationObserver(untranslateVideo);
-  observer1.observe(document.querySelector('title'), { attributes: false, childList: true, subtree: true });
+  // const observer1 = new MutationObserver(untranslateVideo);
+  // observer1.observe(document.querySelector('title'), { attributes: false, childList: true, subtree: true });
   untranslateVideo();
 
-  const observer2 = new MutationObserver(() => document.querySelectorAll(thumbnailSelector).forEach(untranslateThumbnail));
+  const observer2 = new MutationObserver(() =>
+    document.querySelectorAll(thumbnailSelector).forEach(untranslateThumbnail)
+  );
   observer2.observe(document.body, { attributes: false, childList: true, subtree: true });
 })();
