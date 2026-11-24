@@ -1,0 +1,19 @@
+/* "css": ["test.css"], */
+
+/* Watch title */
+ytd-watch-flexy:not([hidden]) div#title-row h1 > yt-formatted-string,
+/* Video thumbnails (home, channel, sidebar, search, playlist items; excludes mix/playlist cards) */
+h3 a[href^='/watch?v=']:where(:not([href*='&list=']), [href*='&index=']) > :where(span, yt-formatted-string),
+/* Shorts thumbnails (home, search) */
+h3 a[href^='/shorts/']:not([href="/shorts/"]) > span,
+/* Watch page playlist panel */
+a[href^='/watch?v='] h4 span#video-title,
+/* Endscreen overlay cards near end of video */
+a[href^='https://www.youtube.com/watch?v='] > div.ytp-ce-video-title,
+/* Post-video recommendations (videowall & autoplay countdown) */
+a[href^='https://www.youtube.com/watch?v='] span.ytp-modern-videowall-still-info-title,
+a[href^='https://www.youtube.com/watch?v='] div.ytp-autonav-endscreen-upnext-title
+{
+  color: orange !important;
+  outline: 1px dashed orange !important;
+}

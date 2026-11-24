@@ -1,12 +1,9 @@
 {
   "$schema": "https://www.schemastore.org/jsconfig.json",
   "compilerOptions": {
-    "target": "ESNext"
+    "target": "esnext"
   },
   "typeAcquisition": {
-    "include": [
-      "chrome",
-      "dom-navigation"
-    ]
+    "include": ["chrome"]
   }
 }

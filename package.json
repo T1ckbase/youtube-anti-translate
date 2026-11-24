@@ -1,0 +1,10 @@
+{
+  "$schema": "https://www.schemastore.org/package.json",
+  "private": true,
+  "scripts": {
+    "format": "oxfmt"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.79.0"
+  }
+}
